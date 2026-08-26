@@ -1,0 +1,26 @@
+[ci] run_id=20260826_212753_QwenGR00T_20000 ckpt=/media/ys/data2/starvla/checkpoints/Qwen3VL-GR00T-Bridge-RT-1/checkpoints/steps_20000_pytorch_model.pt tasks=['spoon', 'carrot', 'stack', 'eggplant'] episodes=24 mode=parallel
+[server] pid=215862 port=6678 log=/media/ys/data2/starvla/logs/ci/20260826_212753_QwenGR00T_20000/server.log
+[server] ready after 7x2s
+[ci] latency {'chunk_size': 16, 'n': 20, 'mean_ms': 54.0, 'p50_ms': 53.9, 'p95_ms': 55.2, 'action_shape': [1, 16, 7]}
+[ci] run 1/1 done (675s elapsed)
+
+== 20260826_212753_QwenGR00T_20000 (Qwen3VL-GR00T-Bridge-RT-1/steps_20000_pytorch_model.pt, QwenGR00T @ 20000 steps) ==
+  spoon      70.8%  (17/24, runs=[0.7083])  wall=650.7s
+  carrot     54.2%  (13/24, runs=[0.5417])  wall=654.8s
+  stack      16.7%  (4/24, runs=[0.1667])  wall=651.0s
+  eggplant   95.8%  (23/24, runs=[0.9583])  wall=656.6s
+  mean       59.4%   latency=54.0ms/chunk  server_load=12.3s eval_wall=674.6s
+  report: /media/ys/data2/starvla/reports/20260826_212753_QwenGR00T_20000.json  |  summary: /media/ys/data2/starvla/reports/summary.csv
+[ci] run_id=20260826_213924_QwenOFT_5000 ckpt=/media/ys/data2/starvla/checkpoints/Qwen3VL-OFT-Bridge-RT-1/checkpoints/steps_5000_pytorch_model.pt tasks=['spoon', 'carrot', 'stack', 'eggplant'] episodes=24 mode=parallel
+[server] pid=231309 port=6678 log=/media/ys/data2/starvla/logs/ci/20260826_213924_QwenOFT_5000/server.log
+[server] ready after 7x2s
+[ci] latency {'chunk_size': 16, 'n': 20, 'mean_ms': 34.6, 'p50_ms': 34.4, 'p95_ms': 35.8, 'action_shape': [1, 16, 7]}
+[ci] run 1/1 done (437s elapsed)
+
+== 20260826_213924_QwenOFT_5000 (Qwen3VL-OFT-Bridge-RT-1/steps_5000_pytorch_model.pt, QwenOFT @ 5000 steps) ==
+  spoon      12.5%  (3/24, runs=[0.125])  wall=419.8s
+  carrot      8.3%  (2/24, runs=[0.0833])  wall=415.1s
+  stack       0.0%  (0/24, runs=[0.0])  wall=416.6s
+  eggplant   58.3%  (14/24, runs=[0.5833])  wall=418.6s
+  mean       19.8%   latency=34.6ms/chunk  server_load=12.3s eval_wall=436.6s
+  report: /media/ys/data2/starvla/reports/20260826_213924_QwenOFT_5000.json  |  summary: /media/ys/data2/starvla/reports/summary.csv

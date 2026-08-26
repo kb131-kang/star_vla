@@ -1,0 +1,108 @@
+{
+  "run_id": "20260826_213924_QwenOFT_5000",
+  "datetime": "2026-08-26T21:39:24",
+  "ckpt_path": "/media/ys/data2/starvla/checkpoints/Qwen3VL-OFT-Bridge-RT-1/checkpoints/steps_5000_pytorch_model.pt",
+  "ckpt_id": "Qwen3VL-OFT-Bridge-RT-1/steps_5000_pytorch_model.pt",
+  "framework": "QwenOFT",
+  "train_steps": 5000,
+  "n_episodes": 24,
+  "n_runs": 1,
+  "tasks": {
+    "spoon": {
+      "runs": [
+        {
+          "run": 1,
+          "wall_s": 419.8,
+          "success_rate": 0.125,
+          "n_success": 3,
+          "log": "/media/ys/data2/starvla/logs/ci/20260826_213924_QwenOFT_5000/spoon.run1.log"
+        }
+      ],
+      "success_rate": 0.125,
+      "n_success": 3,
+      "n_episodes": 24,
+      "per_run": [
+        0.125
+      ],
+      "wall_s": 419.8,
+      "status": "ok"
+    },
+    "carrot": {
+      "runs": [
+        {
+          "run": 1,
+          "wall_s": 415.1,
+          "success_rate": 0.0833,
+          "n_success": 2,
+          "log": "/media/ys/data2/starvla/logs/ci/20260826_213924_QwenOFT_5000/carrot.run1.log"
+        }
+      ],
+      "success_rate": 0.0833,
+      "n_success": 2,
+      "n_episodes": 24,
+      "per_run": [
+        0.0833
+      ],
+      "wall_s": 415.1,
+      "status": "ok"
+    },
+    "stack": {
+      "runs": [
+        {
+          "run": 1,
+          "wall_s": 416.6,
+          "success_rate": 0.0,
+          "n_success": 0,
+          "log": "/media/ys/data2/starvla/logs/ci/20260826_213924_QwenOFT_5000/stack.run1.log"
+        }
+      ],
+      "success_rate": 0.0,
+      "n_success": 0,
+      "n_episodes": 24,
+      "per_run": [
+        0.0
+      ],
+      "wall_s": 416.6,
+      "status": "ok"
+    },
+    "eggplant": {
+      "runs": [
+        {
+          "run": 1,
+          "wall_s": 418.6,
+          "success_rate": 0.5833,
+          "n_success": 14,
+          "log": "/media/ys/data2/starvla/logs/ci/20260826_213924_QwenOFT_5000/eggplant.run1.log"
+        }
+      ],
+      "success_rate": 0.5833,
+      "n_success": 14,
+      "n_episodes": 24,
+      "per_run": [
+        0.5833
+      ],
+      "wall_s": 418.6,
+      "status": "ok"
+    }
+  },
+  "latency": {
+    "chunk_size": 16,
+    "n": 20,
+    "mean_ms": 34.6,
+    "p50_ms": 34.4,
+    "p95_ms": 35.8,
+    "action_shape": [
+      1,
+      16,
+      7
+    ]
+  },
+  "mode": "parallel",
+  "workspace_commit": "9d12c87",
+  "notes": "phase1-2 CI rerun (reproducibility check)",
+  "log_dir": "/media/ys/data2/starvla/logs/ci/20260826_213924_QwenOFT_5000",
+  "server_load_s": 12.3,
+  "eval_wall_s": 436.6,
+  "mean": 0.1979,
+  "all_tasks_ok": true
+}

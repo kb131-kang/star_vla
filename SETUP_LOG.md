@@ -159,3 +159,56 @@
 - Phase 2 에의 함의: (a) "출발점 선정" 목적의 OFT 공개본 수치는 신뢰 불가 → 비교표에 "공개본 결함(#424)" 명기. (b) 패러다임 비교는 어차피 스텝 통제 재학습(oft_65k.yaml)으로 수행하므로 계획 변경 불필요. (c) HF 리포에 재학습본이 올라오면 `scripts/04_download_checkpoints.sh` 재실행 + `run_ci.py` 로 재평가.
 
 **Step 5 합격 판정**: 두 체크포인트 리포트가 `reports/` 에 저장됨 ✅. GR00T 61.7 (동봉 공식 로그 63.3 ± 3 안 / 문서 65.3 ± 3 에 0.6%p 미달) — 경계선 합격, OFT 19.8 — 공개본 결함으로 목표 미달 (외부 원인).
+
+## Step 7. Phase 2 준비 패키지
+
+### 7-1. 학습 데이터 — 용량 조회 결과 (⏸ 사용자 승인 대기, 다운로드 미실행)
+| 데이터셋 | 용량 | 파일 수 | 배치 경로 (`data_mix: bridge_rt_1` 이 기대하는 이름) |
+|---|---|---|---|
+| `IPEC-COMMUNITY/bridge_orig_lerobot` | **5.1 GB** | 99,673 | `playground/Datasets/OXE_LEROBOT_DATASET/bridge_orig_1.0.0_lerobot/` + `meta/modality.json` (← `examples/SimplerEnv/train_files/modality.json`) |
+| `IPEC-COMMUNITY/fractal20220817_data_lerobot` | **3.7 GB** | 99,733 | `.../fractal20220817_data_0.1.0_lerobot/` + `meta/modality.json` (← `fractal_modality.json`) |
+| (Phase 3) `StarVLA/LLaVA-OneVision-COCO` | 2.6 GB | 3 | `playground/Datasets/LLaVA-OneVision-COCO/` |
+
+- 디스크 여유 4.9 TB → **전체 로컬 수령에 문제 없음** (합계 8.8 GB, VLM 포함 11.4 GB). 옵션 제시가 필요 없는 수준이나, 프롬프트의 승인 게이트에 따라 실행은 보류.
+- 승인 후 실행: `bash scripts/07_prepare_datasets.sh all` (bridge → fractal → modality.json 배치 → 데이터로더 검증). 파일 수가 많아(약 20만) 다운로드 시간은 수십 분 예상.
+- 주의: 두 데이터셋 모두 파일 수가 ~10만 개라 HF 비로그인 rate limit 에 걸릴 수 있음 → 필요 시 `HF_TOKEN` 설정 권장.
+
+### 7-2. 데이터로더 검증 — ⏸ 7-1 이후 `scripts/07_prepare_datasets.sh check`
+(`starVLA/dataloader/lerobot_datasets.py --config_yaml configs/phase2_matrix/groot_20k.yaml`)
+
+### 7-3. Phase 2 재학습 config 초안 ✅ (`configs/phase2_matrix/`, 실행하지 않음)
+- `groot_20k.yaml`: QwenGR00T, max 40K, save 10K → 평가 10K/20K/40K
+- `oft_65k.yaml`: QwenOFT, max 65K, save 5K → 평가 20K/40K/65K
+- 공통: base_vlm `Qwen3-VL-4B-Instruct-Action`, `bridge_rt_1`, LR 그룹 1e-5/1e-4, bf16 (ds_config), ZeRO-2, 8 GPU, seed 0/1. 런처 `scripts/phase2_launch.sh`. 상세는 `configs/phase2_matrix/README.md`.
+- 검토 메모: 공개 체크포인트 레시피 `train_starvla.py` 는 `vlm_data` 를 사용하지 않는 행동 단독 학습 (공동학습은 `train_starvla_cotrain.py`, Phase 3). Phase 2 는 두 헤드에 동일 적용되므로 공정성은 유지되나, "행동 단독 SFT 20K 내 지각 붕괴"(계획서 §0)가 Phase 2 런에도 해당됨 — Phase 2 는 헤드 비교 목적이므로 허용, Phase 3 에서 공동학습 전환.
+
+## Step 6. CI 스크립트화  (`scripts/run_ci.py`)
+
+- 입력: `--ckpt <steps_N_pytorch_model.pt>` (+ `--port --tasks --episodes --runs --sequential --run-id --notes --skip-latency`)
+- 동작: 서버 기동(`lib/policy_server.sh`) → 지연 측정(`latency_probe.py`, 워밍업 3 + 20회) → WidowX 4과제 × runs (병렬 기본) → `reports/{run_id}.json` + `reports/summary.csv` 누적 → 서버 종료(`finally`, 실패 시에도 종료).
+- 기록 항목 (JSON/CSV 공통): **과제별 성공률 4개 분리**(run 별 값은 JSON `tasks.<task>.per_run`), 평균, 지연 mean/p50/p95 ms + chunk_size, 체크포인트 식별자(`<repo-dir>/<pt>` + 학습 스텝 + framework, config.yaml 에서 추출), 평가 일시, 에피소드/런 수, 서버 로드·평가 벽시계, 실행 모드, 워크스페이스 커밋, notes.
+- 재실행 결과 (`--runs 1`):
+
+| run_id | ckpt | spoon | carrot | stack | eggplant | 평균 | Step 5 (4-run) | 지연 |
+|---|---|---|---|---|---|---|---|---|
+| 20260826_212753 | GR00T 20K | 70.8 | 54.2 | 16.7 | 95.8 | **59.4** | 61.7 (run 별 57.3–64.6) | 54.0 ms |
+| 20260826_213924 | OFT 5K | 12.5 | 8.3 | 0.0 | 58.3 | **19.8** | 19.8 | 34.6 ms |
+
+- 판정 ✅: `summary.csv` 4행 정상 누적. OFT 는 **완전 동일 재현**(결정론적), GR00T 는 4-run 의 run 별 범위(57.3–64.6) 안에서 재현 (flow-matching 샘플링 분산). 지연 값도 재현(53.7↔54.0, 34.6↔34.6).
+- 벽시계: GR00T 1 run 675 s / OFT 1 run 437 s (병렬 4과제, 서버 로드 ~12 s 포함).
+
+## 최종 정리 — 소요 시간과 권장 CI 주기 (RTX 4090)
+
+| 항목 | 측정값 |
+|---|---|
+| 서버 로드 (10 GB ckpt) | 10–18 s (페이지캐시) — 콜드 시 HDD 에서 ~1–2 min |
+| 에피소드 1개 (순차) | ~12–14 s (120 스텝, GR00T) |
+| 1 run (4과제 × 24 eps, 병렬) | GR00T **~11.3 min** / OFT ~7.3 min |
+| 1 run 순차 | GR00T ~20 min |
+| 4 runs (공식 프로토콜) | GR00T **45 min** / OFT 30 min |
+| 지연/청크(16 스텝) | GR00T 53.7 ms (DDIM 10 요청값, 서버측 4-step flow) / OFT 34.6 ms |
+
+권장 CI 주기:
+- **Phase 2 중간 체크포인트** (GR00T 10K/20K/40K, OFT 20K/40K/65K, 시드 2개 = 12개): 결정론적 헤드(OFT)는 `--runs 1`(7 min), 확률적 헤드(GR00T/PI)는 `--runs 4`(45 min) → 총 ≈ 5 h, 클라우드 학습과 병행 가능. 최종 판정(±2%p 동률 규칙)에는 반드시 4-run.
+- **Phase 3 학습 중 회귀 감시**: 10K 스텝마다(8×A100 기준 ≈ 3 h) `--runs 1` 로 11 min 스크리닝, 하락 징후 시 `--runs 4` 로 확정. 4090 한 대로 학습 진행 속도를 충분히 따라감.
+- 두 체크포인트를 동시에 평가하지 말 것 (서버 2개 = 20 GB + 시뮬 → 24 GB 초과 위험). 순차 큐잉.

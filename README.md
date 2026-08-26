@@ -4,6 +4,13 @@
 
 현재 상태: **Phase 0(인프라) + Phase 1(SimplerEnv CI) 완료, Phase 2(OFT vs GR00T) 시작 가능** — 자세한 수치는 SETUP_LOG 및 `reports/`.
 
+| 기준 체크포인트 (WidowX, 4 runs × 24 eps) | spoon | carrot | stack | eggplant | 평균 | 문서값 | 지연/청크 |
+|---|---|---|---|---|---|---|---|
+| Qwen3VL-GR00T-Bridge-RT-1 (20K) | 76.0 | 52.1 | 20.8 | 97.9 | **61.7** | 65.3 (동봉 로그 63.3) | 53.7 ms |
+| Qwen3VL-OFT-Bridge-RT-1 (5K) | 12.5 | 8.3 | 0.0 | 58.3 | **19.8** | 42.7 | 34.6 ms |
+
+OFT 공개본은 starVLA#424 에서 저자가 결함을 인정(재학습 중)한 상태 — 수치는 체크포인트 문제이며 파이프라인 문제가 아님(GR00T 는 커뮤니티 재현 60–64 와 정합).
+
 ## 디렉토리
 
 ```
