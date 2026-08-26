@@ -1,0 +1,19 @@
+# third-party sources (cloned by scripts/)
+third_party/
+# checkpoints / models / datasets
+checkpoints/
+playground/
+datasets/
+*.pt
+*.safetensors
+*.bin
+# experiment tracking
+wandb/
+# logs: keep the directory but not bulky run output
+logs/*.log
+logs/*/
+!logs/.gitkeep
+# python
+__pycache__/
+*.pyc
+.venv/
