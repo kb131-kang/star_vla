@@ -1,0 +1,204 @@
+{
+  "run_id": "20260826_201104_QwenGR00T_20000",
+  "datetime": "2026-08-26T20:11:04",
+  "ckpt_path": "/media/ys/data2/starvla/checkpoints/Qwen3VL-GR00T-Bridge-RT-1/checkpoints/steps_20000_pytorch_model.pt",
+  "ckpt_id": "Qwen3VL-GR00T-Bridge-RT-1/steps_20000_pytorch_model.pt",
+  "framework": "QwenGR00T",
+  "train_steps": 20000,
+  "n_episodes": 24,
+  "n_runs": 4,
+  "tasks": {
+    "spoon": {
+      "runs": [
+        {
+          "run": 1,
+          "wall_s": 664.5,
+          "success_rate": 0.8333,
+          "n_success": 20,
+          "log": "/media/ys/data2/starvla/logs/ci/20260826_201104_QwenGR00T_20000/spoon.run1.log"
+        },
+        {
+          "run": 2,
+          "wall_s": 654.1,
+          "success_rate": 0.7917,
+          "n_success": 19,
+          "log": "/media/ys/data2/starvla/logs/ci/20260826_201104_QwenGR00T_20000/spoon.run2.log"
+        },
+        {
+          "run": 3,
+          "wall_s": 652.1,
+          "success_rate": 0.75,
+          "n_success": 18,
+          "log": "/media/ys/data2/starvla/logs/ci/20260826_201104_QwenGR00T_20000/spoon.run3.log"
+        },
+        {
+          "run": 4,
+          "wall_s": 664.8,
+          "success_rate": 0.6667,
+          "n_success": 16,
+          "log": "/media/ys/data2/starvla/logs/ci/20260826_201104_QwenGR00T_20000/spoon.run4.log"
+        }
+      ],
+      "success_rate": 0.7604,
+      "n_success": 18,
+      "n_episodes": 24,
+      "per_run": [
+        0.8333,
+        0.7917,
+        0.75,
+        0.6667
+      ],
+      "wall_s": 2635.5,
+      "status": "ok"
+    },
+    "carrot": {
+      "runs": [
+        {
+          "run": 1,
+          "wall_s": 666.4,
+          "success_rate": 0.4583,
+          "n_success": 11,
+          "log": "/media/ys/data2/starvla/logs/ci/20260826_201104_QwenGR00T_20000/carrot.run1.log"
+        },
+        {
+          "run": 2,
+          "wall_s": 656.8,
+          "success_rate": 0.5417,
+          "n_success": 13,
+          "log": "/media/ys/data2/starvla/logs/ci/20260826_201104_QwenGR00T_20000/carrot.run2.log"
+        },
+        {
+          "run": 3,
+          "wall_s": 654.1,
+          "success_rate": 0.5833,
+          "n_success": 14,
+          "log": "/media/ys/data2/starvla/logs/ci/20260826_201104_QwenGR00T_20000/carrot.run3.log"
+        },
+        {
+          "run": 4,
+          "wall_s": 667.2,
+          "success_rate": 0.5,
+          "n_success": 12,
+          "log": "/media/ys/data2/starvla/logs/ci/20260826_201104_QwenGR00T_20000/carrot.run4.log"
+        }
+      ],
+      "success_rate": 0.5208,
+      "n_success": 12,
+      "n_episodes": 24,
+      "per_run": [
+        0.4583,
+        0.5417,
+        0.5833,
+        0.5
+      ],
+      "wall_s": 2644.5,
+      "status": "ok"
+    },
+    "stack": {
+      "runs": [
+        {
+          "run": 1,
+          "wall_s": 665.1,
+          "success_rate": 0.2917,
+          "n_success": 7,
+          "log": "/media/ys/data2/starvla/logs/ci/20260826_201104_QwenGR00T_20000/stack.run1.log"
+        },
+        {
+          "run": 2,
+          "wall_s": 653.9,
+          "success_rate": 0.1667,
+          "n_success": 4,
+          "log": "/media/ys/data2/starvla/logs/ci/20260826_201104_QwenGR00T_20000/stack.run2.log"
+        },
+        {
+          "run": 3,
+          "wall_s": 651.4,
+          "success_rate": 0.1667,
+          "n_success": 4,
+          "log": "/media/ys/data2/starvla/logs/ci/20260826_201104_QwenGR00T_20000/stack.run3.log"
+        },
+        {
+          "run": 4,
+          "wall_s": 664.8,
+          "success_rate": 0.2083,
+          "n_success": 5,
+          "log": "/media/ys/data2/starvla/logs/ci/20260826_201104_QwenGR00T_20000/stack.run4.log"
+        }
+      ],
+      "success_rate": 0.2083,
+      "n_success": 5,
+      "n_episodes": 24,
+      "per_run": [
+        0.2917,
+        0.1667,
+        0.1667,
+        0.2083
+      ],
+      "wall_s": 2635.2,
+      "status": "ok"
+    },
+    "eggplant": {
+      "runs": [
+        {
+          "run": 1,
+          "wall_s": 666.9,
+          "success_rate": 1.0,
+          "n_success": 24,
+          "log": "/media/ys/data2/starvla/logs/ci/20260826_201104_QwenGR00T_20000/eggplant.run1.log"
+        },
+        {
+          "run": 2,
+          "wall_s": 658.1,
+          "success_rate": 1.0,
+          "n_success": 24,
+          "log": "/media/ys/data2/starvla/logs/ci/20260826_201104_QwenGR00T_20000/eggplant.run2.log"
+        },
+        {
+          "run": 3,
+          "wall_s": 655.1,
+          "success_rate": 1.0,
+          "n_success": 24,
+          "log": "/media/ys/data2/starvla/logs/ci/20260826_201104_QwenGR00T_20000/eggplant.run3.log"
+        },
+        {
+          "run": 4,
+          "wall_s": 667.9,
+          "success_rate": 0.9167,
+          "n_success": 22,
+          "log": "/media/ys/data2/starvla/logs/ci/20260826_201104_QwenGR00T_20000/eggplant.run4.log"
+        }
+      ],
+      "success_rate": 0.9792,
+      "n_success": 24,
+      "n_episodes": 24,
+      "per_run": [
+        1.0,
+        1.0,
+        1.0,
+        0.9167
+      ],
+      "wall_s": 2648.0,
+      "status": "ok"
+    }
+  },
+  "latency": {
+    "chunk_size": 16,
+    "n": 20,
+    "mean_ms": 53.7,
+    "p50_ms": 53.6,
+    "p95_ms": 54.6,
+    "action_shape": [
+      1,
+      16,
+      7
+    ]
+  },
+  "mode": "parallel",
+  "workspace_commit": "c7cc8a8",
+  "notes": "phase1-1 baseline, official protocol 4x24",
+  "log_dir": "/media/ys/data2/starvla/logs/ci/20260826_201104_QwenGR00T_20000",
+  "server_load_s": 18.3,
+  "eval_wall_s": 2720.0,
+  "mean": 0.6172,
+  "all_tasks_ok": true
+}

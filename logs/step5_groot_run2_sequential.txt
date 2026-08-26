@@ -1,2 +1,12 @@
 [eval] run=20260826_195040_Qwen3VL-GR00T-Bridge-RT-1_steps_20000_pytorch_model ckpt=/media/ys/data2/starvla/checkpoints/Qwen3VL-GR00T-Bridge-RT-1/checkpoints/steps_20000_pytorch_model.pt port=6678 tasks=spoon,carrot,stack,eggplant episodes=0..24 parallel=0
 [server] pid=80465 port=6678 log=/media/ys/data2/starvla/logs/eval/20260826_195040_Qwen3VL-GR00T-Bridge-RT-1_steps_20000_pytorch_model/server.log
+[server] ready after 7x2s
+== results (20260826_195040_Qwen3VL-GR00T-Bridge-RT-1_steps_20000_pytorch_model) ==
+  spoon       79.2%  (spoon wall_s=304)
+  carrot      54.2%  (carrot wall_s=297)
+  stack       12.5%  (stack wall_s=287)
+  eggplant    95.8%  (eggplant wall_s=299)
+  mean        60.4%
+  server_load_s=12 eval_wall_s=1187 total_s=1199
+  logs: /media/ys/data2/starvla/logs/eval/20260826_195040_Qwen3VL-GR00T-Bridge-RT-1_steps_20000_pytorch_model
+[server] stopping 80465

@@ -1,0 +1,16 @@
+[ci] run_id=20260826_201104_QwenGR00T_20000 ckpt=/media/ys/data2/starvla/checkpoints/Qwen3VL-GR00T-Bridge-RT-1/checkpoints/steps_20000_pytorch_model.pt tasks=['spoon', 'carrot', 'stack', 'eggplant'] episodes=24 mode=parallel
+[server] pid=99757 port=6678 log=/media/ys/data2/starvla/logs/ci/20260826_201104_QwenGR00T_20000/server.log
+[server] ready after 10x2s
+[ci] latency {'chunk_size': 16, 'n': 20, 'mean_ms': 53.7, 'p50_ms': 53.6, 'p95_ms': 54.6, 'action_shape': [1, 16, 7]}
+[ci] run 1/4 done (685s elapsed)
+[ci] run 2/4 done (1361s elapsed)
+[ci] run 3/4 done (2034s elapsed)
+[ci] run 4/4 done (2720s elapsed)
+
+== 20260826_201104_QwenGR00T_20000 (Qwen3VL-GR00T-Bridge-RT-1/steps_20000_pytorch_model.pt, QwenGR00T @ 20000 steps) ==
+  spoon      76.0%  (18/24, runs=[0.8333, 0.7917, 0.75, 0.6667])  wall=2635.5s
+  carrot     52.1%  (12/24, runs=[0.4583, 0.5417, 0.5833, 0.5])  wall=2644.5s
+  stack      20.8%  (5/24, runs=[0.2917, 0.1667, 0.1667, 0.2083])  wall=2635.2s
+  eggplant   97.9%  (24/24, runs=[1.0, 1.0, 1.0, 0.9167])  wall=2648.0s
+  mean       61.7%   latency=53.7ms/chunk  server_load=18.3s eval_wall=2720.0s
+  report: /media/ys/data2/starvla/reports/20260826_201104_QwenGR00T_20000.json  |  summary: /media/ys/data2/starvla/reports/summary.csv

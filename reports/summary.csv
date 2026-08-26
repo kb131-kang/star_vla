@@ -1,0 +1,2 @@
+run_id,datetime,ckpt_id,framework,train_steps,spoon,carrot,stack,eggplant,mean,n_episodes,n_runs,latency_mean_ms,latency_p50_ms,latency_p95_ms,chunk_size,server_load_s,eval_wall_s,mode,workspace_commit,notes
+20260826_201104_QwenGR00T_20000,2026-08-26T20:11:04,Qwen3VL-GR00T-Bridge-RT-1/steps_20000_pytorch_model.pt,QwenGR00T,20000,0.7604,0.5208,0.2083,0.9792,0.6172,24,4,53.7,53.6,54.6,16,18.3,2720.0,parallel,c7cc8a8,"phase1-1 baseline, official protocol 4x24"
