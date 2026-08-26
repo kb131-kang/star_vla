@@ -55,3 +55,18 @@
 3. **opencv-python 5.0.0** 이 설치되어 numpy>=2 요구 → `opencv-python<5` (4.11.0.86) 로 고정.
 4. **sapien 2.2.2 가 `pkg_resources` import** → setuptools 81+ 에서 제거됨 → `setuptools<81` (80.10.2) 로 고정.
 5. CUDA/torch 불일치 경고: 없음 (드라이버 CUDA 13.0 ≥ 런타임 12.4, 정상). 단 `QWen3.py` 는 `attn_implementation="sdpa"` 를 하드코딩하므로 flash-attn 은 Qwen3-VL 경로에서 실제로 사용되지 않음 (설치는 무해, 다른 백본용).
+
+## Step 3. 공식 검증 3종  (`scripts/03_smoke_tests.sh [sim|groot|oft|all]`, 로그 `logs/smoke/`)
+
+| # | 검증 | 결과 |
+|---|---|---|
+| 1 | `examples/SimplerEnv/eval_files/test_your_simplerEnv.py` (simpler_env) | ✅ `Env built successfully` — Vulkan 에러 없음 (`libvulkan.so.1` + nvidia ICD 기존재). `GLFW error: X11: Failed to open display` 는 `DISPLAY=""` 헤드리스 실행 시 나오는 무해한 경고 |
+| 2a | `starVLA/model/framework/VLM4A/QwenGR00T.py --config_yaml configs/smoke_oxe_qwen3vl.yaml` (starVLA) | ✅ forward `Action Loss: 1.441`, predict_action 성공, `Finished` |
+| 2b | `starVLA/model/framework/VLM4A/QwenOFT.py --config_yaml configs/smoke_oxe_qwen3vl.yaml` | ✅ `Action Loss (with state): 0.751`, `Predicted Action shape: (1, 16, 7)`, `Finished` |
+| 3 | `starVLA/dataloader/lerobot_datasets.py` 데이터로더 검증 | ⏸ **연기** — 학습 데이터(bridge/fractal LeRobot) 필요. Step 7 데이터 수령 후 `scripts/07_prepare_datasets.sh` 에서 수행 |
+
+메모:
+- `configs/smoke_oxe_qwen3vl.yaml` = 원본 `examples/SimplerEnv/train_files/starvla_cotrain_oxe.yaml` 에서 `base_vlm` 만 로컬 `playground/Pretrained_models/Qwen3-VL-4B-Instruct` 절대경로로 바꾼 사본 (원본 yaml 은 Qwen2.5-VL-3B 상대경로를 가리켜 그대로는 실행 불가).
+- base VLM `Qwen/Qwen3-VL-4B-Instruct` 는 `playground/Pretrained_models/` 에 두고, 원본 리포의 `third_party/starVLA/playground` → 워크스페이스 `playground/` 심볼릭 링크로 연결 (원본 리포 무수정).
+- DINOv2 (`dinov2_vits14`) 는 torch.hub 에서 자동 다운로드됨 (`~/.cache/torch/hub`).
+- "NotImplementedError: Framework ... is not implemented" 는 발생하지 않음 (안정 브랜치는 `build_framework()` 에서 VLM4A/ 하위 모듈을 자동 import).
