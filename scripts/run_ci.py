@@ -12,7 +12,7 @@ WS = Path(__file__).resolve().parent.parent
 LIB = WS / "scripts" / "lib"
 TASK_ORDER = ["spoon", "carrot", "stack", "eggplant"]
 CSV_COLS = ["run_id", "datetime", "ckpt_id", "framework", "train_steps", "spoon", "carrot", "stack", "eggplant",
-            "mean", "n_episodes", "latency_mean_ms", "latency_p50_ms", "latency_p95_ms", "chunk_size",
+            "mean", "n_episodes", "n_runs", "latency_mean_ms", "latency_p50_ms", "latency_p95_ms", "chunk_size",
             "server_load_s", "eval_wall_s", "mode", "workspace_commit", "notes"]
 
 
@@ -36,6 +36,7 @@ def main():
     ap.add_argument("--sequential", action="store_true", help="과제를 순차 실행 (기본: 4과제 동시 실행, 원본 스크립트와 동일)")
     ap.add_argument("--run-id", default=None); ap.add_argument("--notes", default="")
     ap.add_argument("--skip-latency", action="store_true")
+    ap.add_argument("--runs", type=int, default=1, help="과제당 반복 실행 수 (공식 체크포인트 로그는 4 runs × 24 eps 평균)")
     a = ap.parse_args()
     ckpt = Path(a.ckpt).resolve(); assert ckpt.is_file(), f"ckpt not found: {ckpt}"
     meta = ckpt_meta(ckpt)
@@ -47,7 +48,7 @@ def main():
     print(f"[ci] run_id={run_id} ckpt={ckpt} tasks={tasks} episodes={a.episodes} mode={'seq' if a.sequential else 'parallel'}")
 
     report = {"run_id": run_id, "datetime": now.isoformat(timespec="seconds"), "ckpt_path": str(ckpt), **meta,
-              "n_episodes": a.episodes, "tasks": {}, "latency": None, "mode": "sequential" if a.sequential else "parallel",
+              "n_episodes": a.episodes, "n_runs": a.runs, "tasks": {}, "latency": None, "mode": "sequential" if a.sequential else "parallel",
               "workspace_commit": commit, "notes": a.notes, "log_dir": str(out)}
     try:
         t0 = time.time()
@@ -65,34 +66,46 @@ def main():
             except Exception:
                 print("[ci] latency probe failed:\n", r.stdout[-2000:], r.stderr[-2000:])
 
-        t1 = time.time(); procs = {}
-        def launch(t):
-            log = out / f"{t}.log"
-            cmd = ["bash", str(LIB / "run_task.sh"), str(ckpt), str(a.port), t, "0", str(a.episodes), str(out / "videos"), str(log)]
-            return subprocess.Popen(cmd, stdout=open(out / f"{t}.summary", "w"), stderr=subprocess.STDOUT), time.time()
-        for t in tasks:
-            procs[t] = launch(t)
-            if a.sequential:
-                procs[t][0].wait(); report["tasks"][t] = {"wall_s": round(time.time() - procs[t][1], 1)}
-            else:
-                time.sleep(6)
-        if not a.sequential:
+        t1 = time.time()
+        for run_idx in range(1, a.runs + 1):
+            procs = {}
+            def launch(t):
+                log = out / f"{t}.run{run_idx}.log"
+                cmd = ["bash", str(LIB / "run_task.sh"), str(ckpt), str(a.port), t, "0", str(a.episodes),
+                       str(out / "videos" / f"run{run_idx}"), str(log)]
+                return subprocess.Popen(cmd, stdout=open(out / f"{t}.run{run_idx}.summary", "w"), stderr=subprocess.STDOUT), time.time()
+            def finish(t):
+                procs[t][0].wait()
+                report["tasks"].setdefault(t, {}).setdefault("runs", []).append({"run": run_idx, "wall_s": round(time.time() - procs[t][1], 1)})
             for t in tasks:
-                procs[t][0].wait(); report["tasks"][t] = {"wall_s": round(time.time() - procs[t][1], 1)}
+                procs[t] = launch(t)
+                if a.sequential: finish(t)
+                else: time.sleep(6)
+            if not a.sequential:
+                for t in tasks: finish(t)
+            print(f"[ci] run {run_idx}/{a.runs} done ({round(time.time() - t1)}s elapsed)")
         report["eval_wall_s"] = round(time.time() - t1, 1)
     finally:
         sh(["bash", str(LIB / "policy_server.sh"), "stop", str(a.port)])
 
     rates = []
     for t in tasks:
-        log = (out / f"{t}.log").read_text(errors="ignore") if (out / f"{t}.log").exists() else ""
-        m = re.findall(r"Average success ([0-9.]+)", log)
-        d = report["tasks"].setdefault(t, {})
-        if m:
-            sr = float(m[-1]); d.update(success_rate=round(sr, 4), n_success=round(sr * a.episodes), n_episodes=a.episodes, status="ok")
+        d = report["tasks"].setdefault(t, {}); per_run = []
+        for r in d.get("runs", []):
+            log_p = out / f"{t}.run{r['run']}.log"
+            log = log_p.read_text(errors="ignore") if log_p.exists() else ""
+            m = re.findall(r"Average success ([0-9.]+)", log)
+            r["success_rate"] = round(float(m[-1]), 4) if m else None
+            r["n_success"] = round(float(m[-1]) * a.episodes) if m else None
+            r["log"] = str(log_p)
+            if m: per_run.append(float(m[-1]))
+        if per_run and len(per_run) == len(d.get("runs", [])):
+            sr = sum(per_run) / len(per_run)
+            d.update(success_rate=round(sr, 4), n_success=round(sr * a.episodes), n_episodes=a.episodes,
+                     per_run=[round(x, 4) for x in per_run], wall_s=round(sum(r["wall_s"] for r in d["runs"]), 1), status="ok")
             rates.append(sr)
         else:
-            d.update(success_rate=None, status="FAILED", log=str(out / f"{t}.log"))
+            d.update(success_rate=None, status="FAILED")
     report["mean"] = round(sum(rates) / len(rates), 4) if rates else None
     report["all_tasks_ok"] = len(rates) == len(tasks)
 
@@ -100,7 +113,7 @@ def main():
     (rep_dir / f"{run_id}.json").write_text(json.dumps(report, indent=2, ensure_ascii=False))
     lat = report["latency"] or {}
     row = {"run_id": run_id, "datetime": report["datetime"], "ckpt_id": meta["ckpt_id"], "framework": meta["framework"],
-           "train_steps": meta["train_steps"], "mean": report["mean"], "n_episodes": a.episodes,
+           "train_steps": meta["train_steps"], "mean": report["mean"], "n_episodes": a.episodes, "n_runs": a.runs,
            "latency_mean_ms": lat.get("mean_ms"), "latency_p50_ms": lat.get("p50_ms"), "latency_p95_ms": lat.get("p95_ms"),
            "chunk_size": lat.get("chunk_size"), "server_load_s": report.get("server_load_s"), "eval_wall_s": report.get("eval_wall_s"),
            "mode": report["mode"], "workspace_commit": commit, "notes": a.notes}
@@ -114,7 +127,7 @@ def main():
     for t in tasks:
         d = report["tasks"][t]
         print(f"  {t:9s} {('%5.1f%%' % (d['success_rate']*100)) if d.get('success_rate') is not None else ' FAIL '}  "
-              f"({d.get('n_success','?')}/{a.episodes})  wall={d.get('wall_s')}s")
+              f"({d.get('n_success','?')}/{a.episodes}, runs={d.get('per_run')})  wall={d.get('wall_s')}s")
     print(f"  mean      {report['mean']*100 if report['mean'] is not None else float('nan'):5.1f}%   latency={lat.get('mean_ms')}ms/chunk"
           f"  server_load={report.get('server_load_s')}s eval_wall={report.get('eval_wall_s')}s")
     print(f"  report: {rep_dir / (run_id + '.json')}  |  summary: {csv_path}")

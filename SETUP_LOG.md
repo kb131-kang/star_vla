@@ -85,3 +85,33 @@
 - `dataset_statistics.json` 의 unnorm 키: `oxe_bridge`, `oxe_rt1` (WidowX 평가는 `oxe_bridge` 사용, 클라이언트 기본값).
 - HF 로그인 없이(public) 다운로드. `hf_transfer` 는 최신 `hf` CLI 에서 무시됨(Xet 기반) — 경고만 출력.
 - 다운로드는 starVLA env 구축과 병행하기 위해 scratchpad 의 임시 venv(`huggingface_hub[cli]`)로 실행 (`HF_CLI=` 환경변수로 지정). 재현 시엔 starVLA env 의 `hf` 사용.
+
+## Step 5. 평가 파이프라인 가동 및 기준선 재현  (`scripts/eval_simplerenv.sh <ckpt> <port> [tasks] [ep_end] [parallel]`)
+
+### 5-0. 파이프라인 구조 (tmux 미설치 → nohup)
+- `scripts/lib/policy_server.sh start|stop`: starVLA env 에서 `deployment/model_server/server_policy.py --use_bf16` 를 nohup 으로 띄우고 포트가 열릴 때까지 대기 (체크포인트 10 GB 로드 ≈ 10–14 s, 페이지캐시 덕분).
+- `scripts/lib/run_task.sh`: simpler_env env 에서 `examples/SimplerEnv/eval_files/start_simpler_env.py` 를 원본 `start_simpler_env.sh` 와 **동일한 인자**(scene/robot/overlay/robot_init/24 episodes/120 steps/5 Hz)로 실행. `SimplerEnv_PATH` 역할은 `lib/env.sh` 의 `SIMPLER_DIR` (third_party/SimplerEnv 절대경로).
+- 원본 `start_simpler_env.sh` 를 쓰지 않은 이유: 안정 브랜치에서 Spoon/Carrot/Stack 이 주석 처리되어 있고 `CUDA_VISIBLE_DEVICES` 미설정 시 `set -u` 로 종료됨 (원본 무수정 원칙에 따라 워크스페이스 드라이버로 대체).
+
+### 5-1. 축소 스모크 평가 (GR00T, spoon × 2 episodes, 순차)
+- 1차: 에피소드 1 이 120 스텝 완주(success) 후 영상 저장 단계에서 `RuntimeError: Program 'ffmpeg' is not found` → simpler_env 에 `conda install -c conda-forge ffmpeg` (sudo 불필요) + `run_task.sh` 가 env bin 을 PATH 앞에 추가. `02_create_envs.sh` 에 반영.
+- 2차: ✅ spoon 2/2 성공, 서버 로드 12 s, 2 에피소드 25 s (**≈ 12–14 s/episode**, 120 스텝 기준 ≈ 110 ms/step: 서버 추론 + 시뮬 스텝 + 렌더).
+- 부수 수정: `eval_simplerenv.sh` 요약 단계에서 `grep` 무매치 + `pipefail` 로 스크립트가 조용히 종료되던 버그 수정 (`|| true`).
+
+### 5-2. 공식 기준 수치의 실체 (체크포인트에 동봉된 `checkpoints/*_infer_<task>.log.run{1..4}` 분석)
+공개 수치(65.3 / 42.7)는 **과제당 24 episodes × 4 runs 평균**이다. 동봉 로그에서 읽은 run 별 성공률:
+
+| 체크포인트 | 과제 | run1 | run2 | run3 | run4 | 4-run 평균 |
+|---|---|---|---|---|---|---|
+| GR00T 20K | spoon | 75.0 | 83.3 | 70.8 | 70.8 | **75.0** |
+| | carrot | 62.5 | 54.2 | 58.3 | 62.5 | **59.4** |
+| | stack | 20.8 | 20.8 | 12.5 | 20.8 | **18.8** |
+| | eggplant | 100 | 100 | 100 | 100 | **100** |
+| | 평균 | 64.6 | 64.6 | 60.4 | 63.5 | **63.3** (문서 65.3) |
+| OFT 5K | spoon | 33.3 | 33.3 | 25.0 | 33.3 | **31.3** |
+| | carrot | 50.0 | 50.0 | 54.2 | 50.0 | **51.0** |
+| | stack | 0 | 0 | 0 | 0 | **0** |
+| | eggplant | 100 | 54.2 | 100 | 100 | **88.5** |
+| | 평균 | 45.8 | 34.4 | 44.8 | 45.8 | **42.7** (문서 42.7 과 일치) |
+
+→ 단일 24-episode 런의 과제별 표준편차는 ~8–10%p, 평균 기준 ~±4%p. 따라서 **±3%p 합격 판정은 4-run 평균으로 수행**하는 것이 공식 프로토콜과 정합. `run_ci.py --runs 4` 로 구현.
