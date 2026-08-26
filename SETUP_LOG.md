@@ -41,3 +41,17 @@
 - SimplerEnv 검증/실행 스크립트 위치: `examples/SimplerEnv/eval_files/test_your_simplerEnv.py`, `examples/SimplerEnv/eval_files/start_simpler_env.sh`
 - `start_simpler_env.sh` 는 안정 브랜치에서 WidowX 3과제가 주석 처리되어 Eggplant 만 실행되고, `CUDA_VISIBLE_DEVICES` 미설정 시 `set -u` 로 즉시 종료됨 → 원본은 수정하지 않고 워크스페이스 `scripts/` 에 자체 드라이버를 작성
 - `data_mix: bridge_rt_1` 이 기대하는 데이터 디렉토리 이름: `bridge_orig_1.0.0_lerobot`, `fractal20220817_data_0.1.0_lerobot` (HF 리포명과 다름 — Step 7 에서 이 이름으로 배치)
+
+## Step 2. conda 환경 2개 구축  (`scripts/02_create_envs.sh [starvla|simpler|all]`, 로그 `logs/02_env_all.log`)
+
+| env | 내용 | 검증 |
+|---|---|---|
+| `starVLA` | py3.10, `pip install -r requirements.txt` (torch **2.6.0+cu124**, torchvision 0.21.0, transformers 4.57.0, numpy 1.26.4, deepspeed 0.16.9), flash-attn 2.7.4.post1 (**prebuilt wheel**: cu12/torch2.6/cp310/cxx11abiFALSE — 로컬에 nvcc 없음), `pip install -e third_party/starVLA`, `huggingface_hub[cli]` | `torch.cuda.is_available()==True`, device RTX 4090, `import starVLA, flash_attn` OK |
+| `simpler_env` | py3.10, numpy==1.24.4 → `ManiSkill2_real2sim` -e → `SimplerEnv` -e → tyro/matplotlib/mediapy/websockets/msgpack → `opencv-python<5`, `setuptools<81`, numpy==1.24.4 재고정 | `import simpler_env` OK (25 envs), sapien 2.2.2, gymnasium 0.29.1, **numpy 1.24.4**, `pip check` 이상 없음 |
+
+발생한 문제와 해결:
+1. **conda 캐시 경합**: 두 `conda create` 를 동시에 실행하자 `pkgs/*.conda.partial` 경합으로 둘 다 실패 → 순차 실행으로 재시도 (스크립트 `all` 모드는 순차).
+2. **사용자 site-packages 오염**: `~/.local/lib/python3.10/site-packages` 에 cv2(4.11)/h5py/tqdm 이 있어 conda py3.10 env 에서 이를 먼저 import 하고 pip 도 "already satisfied" 로 건너뜀 → 모든 스크립트에서 `PYTHONNOUSERSITE=1` 강제 (`scripts/lib/env.sh`, `02_create_envs.sh`) 후 재설치.
+3. **opencv-python 5.0.0** 이 설치되어 numpy>=2 요구 → `opencv-python<5` (4.11.0.86) 로 고정.
+4. **sapien 2.2.2 가 `pkg_resources` import** → setuptools 81+ 에서 제거됨 → `setuptools<81` (80.10.2) 로 고정.
+5. CUDA/torch 불일치 경고: 없음 (드라이버 CUDA 13.0 ≥ 런타임 12.4, 정상). 단 `QWen3.py` 는 `attn_implementation="sdpa"` 를 하드코딩하므로 flash-attn 은 Qwen3-VL 경로에서 실제로 사용되지 않음 (설치는 무해, 다른 백본용).

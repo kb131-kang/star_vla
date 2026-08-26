@@ -2,6 +2,8 @@
 # Step 2: conda 환경 2개 생성 (starVLA / simpler_env). 재실행 가능 (이미 있으면 재사용).
 #   bash scripts/02_create_envs.sh [starvla|simpler|all]
 set -euo pipefail
+# ~/.local/lib/python3.10 의 사용자 패키지(cv2, h5py 등)가 conda env 를 가리는 것을 방지
+export PYTHONNOUSERSITE=1
 WS="$(cd "$(dirname "$0")/.." && pwd)"
 source "$(conda info --base)/etc/profile.d/conda.sh"
 TARGET="${1:-all}"
@@ -30,8 +32,11 @@ create_simpler() {
   cd "$WS/third_party/SimplerEnv" && pip install -e .
   # starVLA SimplerEnv 예제 클라이언트 의존성
   pip install tyro matplotlib mediapy websockets msgpack
-  # 위 설치가 numpy 를 올렸을 수 있으므로 반드시 재고정 (시뮬 IK/pinocchio 호환)
-  pip install numpy==1.24.4
+  # 호환성 고정 (SETUP_LOG Step 2 참고):
+  #  - opencv-python 5.x 는 numpy>=2 를 요구 → 4.x 로 고정
+  #  - sapien 2.2.2 가 pkg_resources 를 import → setuptools<81 필요 (81 부터 제거됨)
+  #  - 위 설치가 numpy 를 올렸을 수 있으므로 반드시 재고정 (시뮬 IK/pinocchio 호환)
+  pip install "opencv-python<5" "setuptools<81" numpy==1.24.4
   conda deactivate
 }
 
