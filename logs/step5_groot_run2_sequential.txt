@@ -1,0 +1,1 @@
+[eval] run=20260826_195040_Qwen3VL-GR00T-Bridge-RT-1_steps_20000_pytorch_model ckpt=/media/ys/data2/starvla/checkpoints/Qwen3VL-GR00T-Bridge-RT-1/checkpoints/steps_20000_pytorch_model.pt port=6678 tasks=spoon,carrot,stack,eggplant episodes=0..24 parallel=0

@@ -32,9 +32,9 @@ t1=$(date +%s)
 echo "== results ($run) =="
 sum=0; n=0
 for t in "${TLIST[@]}"; do
-  sr=$(grep -oE "Average success [0-9.]+" "$out/$t.log" | tail -1 | awk '{print $3}')
+  sr=$( (grep -oE "Average success [0-9.]+" "$out/$t.log" || true) | tail -1 | awk '{print $3}')
   [ -z "$sr" ] && { echo "  $t: FAILED (see $out/$t.log)"; tail -5 "$out/$t.log"; continue; }
-  printf "  %-9s %6.1f%%  (%s)\n" "$t" "$(echo "$sr*100" | bc -l)" "$(grep "^$t " "$out/timing.txt")"
+  printf "  %-9s %6.1f%%  (%s)\n" "$t" "$(echo "$sr*100" | bc -l)" "$(grep "^$t " "$out/timing.txt" || true)"
   sum=$(echo "$sum+$sr" | bc -l); n=$((n+1))
 done
 [ "$n" -gt 0 ] && printf "  %-9s %6.1f%%\n" "mean" "$(echo "$sum/$n*100" | bc -l)"

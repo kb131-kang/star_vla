@@ -70,3 +70,18 @@
 - base VLM `Qwen/Qwen3-VL-4B-Instruct` 는 `playground/Pretrained_models/` 에 두고, 원본 리포의 `third_party/starVLA/playground` → 워크스페이스 `playground/` 심볼릭 링크로 연결 (원본 리포 무수정).
 - DINOv2 (`dinov2_vits14`) 는 torch.hub 에서 자동 다운로드됨 (`~/.cache/torch/hub`).
 - "NotImplementedError: Framework ... is not implemented" 는 발생하지 않음 (안정 브랜치는 `build_framework()` 에서 VLM4A/ 하위 모듈을 자동 import).
+
+## Step 4. 기준 체크포인트 2종 다운로드  (`scripts/04_download_checkpoints.sh`, 로그 `logs/04_download.log`)
+
+| 항목 | 경로 | 크기 |
+|---|---|---|
+| base VLM `Qwen/Qwen3-VL-4B-Instruct` | `playground/Pretrained_models/Qwen3-VL-4B-Instruct/` | 8.9 GB |
+| `StarVLA/Qwen3VL-GR00T-Bridge-RT-1` | `checkpoints/Qwen3VL-GR00T-Bridge-RT-1/checkpoints/steps_20000_pytorch_model.pt` | 9.98 GB |
+| `StarVLA/Qwen3VL-OFT-Bridge-RT-1` | `checkpoints/Qwen3VL-OFT-Bridge-RT-1/checkpoints/steps_5000_pytorch_model.pt` | 9.79 GB |
+
+- 실제 파일명은 `ls` 로 확인: GR00T = **steps_20000**, OFT = **steps_5000** (문서의 `steps_XXXXX`/`steps_50000` 은 플레이스홀더). `configs/checkpoints.yaml` 에 절대경로로 기록.
+- 두 체크포인트의 `config.yaml` 은 `framework.qwenvl.base_vlm` 이 원저자 환경 경로(GR00T: 상대경로 `./playground/...`, OFT: 절대경로 `/mnt/petrelfs/yejinhui/...`)를 가리켜 그대로는 로드 불가
+  → 스크립트가 로컬 절대경로 `playground/Pretrained_models/Qwen3-VL-4B-Instruct` 로 교정 (`config.yaml.orig` 로 원본 보존). 가중치는 `.pt` 에서 전부 로드되므로 base_vlm 은 아키텍처/프로세서 로딩용.
+- `dataset_statistics.json` 의 unnorm 키: `oxe_bridge`, `oxe_rt1` (WidowX 평가는 `oxe_bridge` 사용, 클라이언트 기본값).
+- HF 로그인 없이(public) 다운로드. `hf_transfer` 는 최신 `hf` CLI 에서 무시됨(Xet 기반) — 경고만 출력.
+- 다운로드는 starVLA env 구축과 병행하기 위해 scratchpad 의 임시 venv(`huggingface_hub[cli]`)로 실행 (`HF_CLI=` 환경변수로 지정). 재현 시엔 starVLA env 의 `hf` 사용.

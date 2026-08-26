@@ -37,6 +37,8 @@ create_simpler() {
   #  - sapien 2.2.2 가 pkg_resources 를 import → setuptools<81 필요 (81 부터 제거됨)
   #  - 위 설치가 numpy 를 올렸을 수 있으므로 반드시 재고정 (시뮬 IK/pinocchio 호환)
   pip install "opencv-python<5" "setuptools<81" numpy==1.24.4
+  # 평가 영상 저장(mediapy.write_video)에 ffmpeg 바이너리 필요 — 시스템 apt 대신 env 내부에 설치 (sudo 불필요)
+  conda install -y -c conda-forge ffmpeg
   conda deactivate
 }
 

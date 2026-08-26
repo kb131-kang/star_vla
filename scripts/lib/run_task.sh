@@ -8,6 +8,7 @@ IFS='|' read -r env_name scene robot overlay rx ry <<< "${TASKS[$task]}"
 mkdir -p "$(dirname "$log")" "$video_dir"
 cd "$STARVLA_DIR"
 export DISPLAY=""
+export PATH="$(dirname "$SIM_PY"):$PATH"   # mediapy 가 PATH 에서 ffmpeg 를 찾음 (simpler_env 에 conda 로 설치)
 export CUDA_VISIBLE_DEVICES="${gpu_id:-0}"
 "$SIM_PY" examples/SimplerEnv/eval_files/start_simpler_env.py \
   --ckpt-path "$ckpt" --port "$port" \
